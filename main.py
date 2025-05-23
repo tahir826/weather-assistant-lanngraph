@@ -252,46 +252,60 @@ Guidelines:
 3. Include relevant details like temperature, conditions, humidity, and wind
 4. If there's an error, explain it clearly and suggest alternatives
 5. Be concise but informative in your responses
+6. Give weather info in Table
+7. also use appropriate emojis according to weather conditions
 """
 
 # Chainlit Integration
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+
+SYSTEM_MESSAGE = "You are a helpful weather assistant."
+
 @cl.on_chat_start
 async def start():
+    cl.user_session.set("chat_history", [])
     await cl.Message(
-        content="🌤️ Welcome to Weather Assistant! Ask me about current weather, forecasts, or historical weather data for any city.",
+        content="🌤️ Welcome to Weather Assistant! Ask me anything about the weather."
     ).send()
+
 
 @cl.on_message
 async def main(message: cl.Message):
-    # Show typing indicator
+    # Step: Loading/processing indicator
     async with cl.Step(name="AI Response", type="tool") as step:
-        step.output = "Generating output..."
-        
-        # Prepare messages for the graph
-        messages = [
-            SystemMessage(content=SYSTEM_MESSAGE),
-            HumanMessage(content=message.content)
-        ]
-        
+        step.output = "Generating response..."
+
+        # Get history from session
+        history = cl.user_session.get("chat_history") or []
+
+        # Insert system message once (if not already added)
+        if not any(isinstance(msg, SystemMessage) for msg in history):
+            history.insert(0, SystemMessage(content=SYSTEM_MESSAGE))
+
+        # Append user's new message
+        history.append(HumanMessage(content=message.content))
+
         try:
-            # Invoke the graph
-            result = graph.invoke({"messages": messages})
-            
-            # Extract only the final AI response
+            # Run LangGraph with full history
+            result = graph.invoke({"messages": history})
+
+            # Extract response
             response_content = extract_final_ai_response(result)
-            
-            if response_content:
-                step.output = "Response received."
-            else:
-                response_content = "I apologize, but I couldn't retrieve the weather information. Please try again with a different query."
-                step.output = "Failed to retrieve weather data."
-                
+
+            # Append AI's response
+            history.append(AIMessage(content=response_content))
+            step.output = "Response generated."
+
         except Exception as e:
-            response_content = f"I encountered an error while fetching weather data: {str(e)}"
-            step.output = f"Error: {str(e)}"
-    
-    # Send only the AI response
+            response_content = f"❌ Error: {str(e)}"
+            step.output = response_content
+
+        # Update stored history in session
+        cl.user_session.set("chat_history", history)
+
+    # Send reply to user
     await cl.Message(content=response_content).send()
+
 
 def extract_final_ai_response(result):
     """
