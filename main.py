@@ -265,7 +265,7 @@ async def start():
 async def main(message: cl.Message):
     # Show typing indicator
     async with cl.Step(name="AI Response", type="tool") as step:
-        step.output = "Generating Output..."
+        step.output = "Generating output..."
         
         # Prepare messages for the graph
         messages = [
