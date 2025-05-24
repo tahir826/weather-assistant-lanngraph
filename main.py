@@ -252,7 +252,7 @@ Guidelines:
 3. Include relevant details like temperature, conditions, humidity, and wind
 4. If there's an error, explain it clearly and suggest alternatives
 5. Be concise but informative in your responses
-6. Give weather info in Table.
+6. Give weather info in Tabular format when appropriate
 7. also use appropriate emojis according to weather conditions
 """
 
