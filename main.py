@@ -252,7 +252,7 @@ Guidelines:
 3. Include relevant details like temperature, conditions, humidity, and wind
 4. If there's an error, explain it clearly and suggest alternatives
 5. Be concise but informative in your responses
-6. Give weather info in Table
+6. Give weather info in Table.
 7. also use appropriate emojis according to weather conditions
 """
 
@@ -305,7 +305,6 @@ async def main(message: cl.Message):
 
     # Send reply to user
     await cl.Message(content=response_content).send()
-
 
 def extract_final_ai_response(result):
     """
